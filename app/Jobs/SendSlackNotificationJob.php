@@ -5,7 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class SendEmailNotification implements ShouldQueue
+class SendSlackNotificationJob implements ShouldQueue
 {
     use Queueable;
 

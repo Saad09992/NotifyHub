@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('recipient_id')->constrained()->cascadeOnDelete();
             $table->foreignId('template_id')->constrained()->cascadeOnDelete();
+            $table->json('channels');
             $table->json('payload');
             $table->enum('status',['success','failure','partial_success','pending'])->default('pending');
             $table->timestamps();
