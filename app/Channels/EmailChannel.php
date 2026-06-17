@@ -16,7 +16,7 @@ class EmailChannel implements NotificationContract
      * @return bool
      * @throws SendNotificationFailedException
      */
-    public function sendNotification(string $message,$contact): bool {
+    public function sendNotification(string $message,$contact): string {
         if (isString($contact)){
             $contact = json_decode($contact,true);
         }
@@ -30,7 +30,7 @@ class EmailChannel implements NotificationContract
                     ->subject("Notification from NotifyHub");
             });
             
-            return true;
+            return 'delivered';
         }catch (SendNotificationFailedException $e){
             throw new SendNotificationFailedException("Failed to send notification to Email || Recipient: $contact || Message: $message");
         }

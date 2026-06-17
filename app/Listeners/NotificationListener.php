@@ -27,7 +27,6 @@ class NotificationListener
         foreach ($event->data['channels'] as $channel){
             $event->data['channel']=$channel;
             SendNotificationJob::dispatch($event->data);
-//            $chan->sendNotification($event->data['message'],$event->data['recipient']['contact_details']);
         }
     }
 }

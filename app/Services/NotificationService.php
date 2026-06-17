@@ -24,12 +24,12 @@ class NotificationService
         ]);
     }
     
-    public function addNotificationAttemptEntry(string $recipient_id,string $notification_id,string $channel,string 
-    $status, ?string $reason = null){
+    public function addNotificationAttemptEntry(string $recipient_id,string $notification_id,string $channel,?string 
+    $status = 'pending', ?string $reason = null):NotificationAttempt{
         return NotificationAttempt::create([
             'notification_id'=>$notification_id,
             'channel'=>$channel,
-            'status'=>$status,
+            'status'=>$status ,
             'failure_reason'=>$reason
         ]);
     }
