@@ -9,14 +9,16 @@ use App\Services\NotificationService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Log;
 
 class SendNotificationJob implements ShouldQueue
 {
     use Queueable, Batchable;
     public int $tries = 3;
     public int $timeout = 15;
-    
+    public int $backoff = 10;
+
+
     private $data;
     private NotificationAttempt $notificationAttempt;
     
@@ -54,6 +56,12 @@ class SendNotificationJob implements ShouldQueue
             ]);
             $this->notificationAttempt->save();
             throw $e;
+        }catch(\Throwable $e){
+            $this->notificationAttempt->update([
+                'status'=>'failed',
+                'failure_reason'=>'internal error'
+            ]);
+            $this->fail($e);
         }
     }
     

@@ -18,7 +18,7 @@ class SlackChannel implements NotificationContract
             $contact = json_decode($contact,true);
         }
         if (!isset($contact['slack_webhook'])){
-            throw new SendNotificationFailedException('Invalid Contact Details Received. Missing Key email');
+            throw new SendNotificationFailedException('Invalid Contact Details Received. Missing Key slack_webhook');
         }
         try {
             $resp = Http::post($contact['slack_webhook'],[
@@ -26,12 +26,14 @@ class SlackChannel implements NotificationContract
             ]);
             
             if(!$resp->successful()){
-                throw new SendNotificationFailedException("Failed to send notification to slack || Recipient: $contact || Message: $message Error: HTTP error: SlackChannel:23");
+                throw new SendNotificationFailedException("Failed to send notification to slack || Message: $message Error: HTTP error: SlackChannel:23");
             }
             
             return "delivered";
-        }catch (ConnectionException $e){
-            throw new SendNotificationFailedException("Failed to send notification to slack || Recipient: $contact || Message: $message || Error: {$e->getMessage()}",0,$e);
+        }catch (ConnectionException $e) {
+            throw new SendNotificationFailedException(
+                "Failed to send notification to slack || Message: $message || Error: {$e->getMessage()}", 0, $e
+            );
         }
     }
 }   

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SaveTemplateRequest extends FormRequest
+class UpdateRecipientRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,9 @@ class SaveTemplateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'template_body'=>'string|required',
+            'contact_details' => 'sometimes|array',
+            'contact_details.email' => 'sometimes|email',
+            'contact_details.slack_webhook' => 'sometimes|url|starts_with:https://hooks.slack.com/services/',
         ];
     }
 }

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->text('template_body');
-            $table->json('supported_channels');
             $table->timestamps();
         });
     }

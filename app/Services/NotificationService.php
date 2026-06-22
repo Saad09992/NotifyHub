@@ -6,8 +6,11 @@ use App\Channels\EmailChannel;
 use App\Channels\SlackChannel;
 use App\Contracts\NotificationContract;
 use App\Exceptions\ChannelNotSupportedException;
+use App\Exceptions\NotificationNotFoundException;
 use App\Models\Notification;
 use App\Models\NotificationAttempt;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationService
@@ -47,6 +50,32 @@ class NotificationService
         };
     }
     
+    /**
+     * @throws NotificationNotFoundException
+     */
+    public function getNotification(string $notification_id): Notification
+    {
+        try {
+            $notification = Notification::with('notificationAttempts')->findOrFail($notification_id);
+        } catch (ModelNotFoundException $e) {
+            throw new NotificationNotFoundException($notification_id, previous: $e);
+        }
+
+        if ($notification->user_id !== Auth::id()) {
+            throw new NotificationNotFoundException($notification_id);
+        }
+
+        return $notification;
+    }
+
+    public function listNotifications(): Collection
+    {
+        return Notification::with('notificationAttempts')
+            ->where('user_id', Auth::id())
+            ->orderByDesc('created_at')
+            ->get();
+    }
+
     public function updateNotificationStatus($notification_id): void {
         $success = 0;
         $failure = 0;

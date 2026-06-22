@@ -23,8 +23,8 @@ class SendNotificationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'recipient_id'=>'int',
-            'template_id'=>'int',
+            'recipient_id'=>'int|required',
+            'template_id'=>'int|required',
             'channels'=>'array|required|min:1',
             'channels.*'=>'in:email,slack',
             'payload'=>'array'

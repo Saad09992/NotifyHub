@@ -4,28 +4,76 @@ namespace App\Services;
 
 use App\Exceptions\TemplateNotFoundException;
 use App\Models\Template;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 
 class TemplateService
 {
-    public function createTemplate($data):Template{
+    public function createTemplate($data): Template
+    {
         return Template::create([
-            'user_id'=>Auth::user()->id,
-            'template_body'=>$data['template_body'],
-            'supported_channels'=>$data['supported_channels']
+            'user_id' => Auth::id(),
+            'template_body' => $data['template_body'],
+            'supported_channels' => $data['supported_channels'],
         ]);
     }
 
     /**
      * @throws TemplateNotFoundException
      */
-    public function getTemplate(string $template_id):Template{
+    public function getTemplate(string $template_id): Template
+    {
         try {
-            return Template::findorFail($template_id);
-        }catch (ModelNotFoundException $e){
+            $template = Template::findOrFail($template_id);
+        } catch (ModelNotFoundException $e) {
             throw new TemplateNotFoundException($template_id, previous: $e);
         }
+
+        if ($template->user_id !== Auth::id()) {
+            throw new TemplateNotFoundException($template_id);
+        }
+
+        return $template;
+    }
+
+    public function listTemplates(): Collection
+    {
+        return Template::where('user_id', Auth::id())->get();
+    }
+
+    /**
+     * @throws TemplateNotFoundException
+     */
+    public function updateTemplate(array $data, Template $template): Template
+    {
+        if ($template->user_id !== Auth::id()) {
+            throw new TemplateNotFoundException((string) $template->id);
+        }
+
+        if (isset($data['template_body'])) {
+            $template->template_body = $data['template_body'];
+        }
+
+        if (isset($data['supported_channels'])) {
+            $template->supported_channels = $data['supported_channels'];
+        }
+
+        $template->save();
+
+        return $template;
+    }
+
+    /**
+     * @throws TemplateNotFoundException
+     */
+    public function deleteTemplate(Template $template): void
+    {
+        if ($template->user_id !== Auth::id()) {
+            throw new TemplateNotFoundException((string) $template->id);
+        }
+
+        $template->delete();
     }
 
     public function compose(string $template, array $data): string
