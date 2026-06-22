@@ -4,9 +4,10 @@ namespace App\Services;
 
 use App\Channels\EmailChannel;
 use App\Channels\SlackChannel;
+use App\Contracts\NotificationContract;
+use App\Exceptions\ChannelNotSupportedException;
 use App\Models\Notification;
 use App\Models\NotificationAttempt;
-use http\Exception\InvalidArgumentException;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationService
@@ -34,15 +35,40 @@ class NotificationService
         ]);
     }
     
-    public function composeMessage(string $template_id, $payload): string {
-        return 'This is dummy message for now';
-    }
-    
-    public function resolveChannel(string $name){
+
+    /**
+     * @throws ChannelNotSupportedException
+     */
+    public function resolveChannel(string $name): NotificationContract{
         return match ($name){
           'email'=> app(EmailChannel::class),
           'slack'=>app(SlackChannel::class),
-          default=> throw new InvalidArgumentException("Channel [{$name}] is not supported")  
+          default=> throw new ChannelNotSupportedException($name)  
         };
+    }
+    
+    public function updateNotificationStatus($notification_id): void {
+        $success = 0;
+        $failure = 0;
+        $notification = Notification::with('notificationAttempts')->findOrFail($notification_id);
+        
+        foreach ($notification->notificationAttempts as $attempt){
+            if ($attempt->status == 'delivered') {
+                $success++;
+            }else{
+                $failure++;
+            }
+        }
+
+        $status = match (true) {
+            $notification->notificationAttempts->isEmpty() => 'pending',
+            $success > 0 && $failure === 0 => 'success',
+            $success === 0 && $failure > 0 => 'failure',
+            $success > 0 && $failure > 0 => 'partial_success',
+            default => 'failure',
+        };
+        
+        $notification->status = $status;
+        $notification->save();
     }
 }

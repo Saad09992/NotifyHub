@@ -25,7 +25,8 @@ class SendNotificationRequest extends FormRequest
         return [
             'recipient_id'=>'int',
             'template_id'=>'int',
-            'channels'=>'array',
+            'channels'=>'array|required|min:1',
+            'channels.*'=>'in:email,slack',
             'payload'=>'array'
         ];
     }

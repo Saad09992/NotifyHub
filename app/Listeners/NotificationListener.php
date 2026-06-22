@@ -4,11 +4,11 @@ namespace App\Listeners;
 
 use App\Events\NotificationEvent;
 use App\Jobs\SendNotificationJob;
-use App\Services\NotificationService;
-use App\Services\RecipientService;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Jobs\UpdateNotificationStatusJob;
+use Illuminate\Bus\Batch;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+
 
 class NotificationListener
 {
@@ -24,9 +24,17 @@ class NotificationListener
      */
     public function handle(NotificationEvent $event): void
     {
+        $jobs = [];
         foreach ($event->data['channels'] as $channel){
-            $event->data['channel']=$channel;
-            SendNotificationJob::dispatch($event->data);
+            $data = $event->data;
+            $data['channel']=$channel;
+            $jobs[] = new SendNotificationJob($data);
         }
+        
+        $notificationId = $event->data['notification_id'];
+        
+        Bus::batch($jobs)->finally(function (Batch $batch)use ($notificationId){
+            UpdateNotificationStatusJob::dispatch($notificationId);
+        })->dispatch();
     }
 }
